@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"os"
+	"path"
 
 	"github.com/cbroglie/mustache"
 )
@@ -22,14 +23,14 @@ func Process(output string, stack *Stack) {
 
 func render(output string, stackItem *StackItem) {
 
-	output, err := mustache.RenderFile(stackItem.Template, stackItem.TemplateData)
+	renderedContent, err := mustache.RenderFile(stackItem.Template, stackItem.TemplateData)
 	check(err)
 
-	f, err := os.Create(stackItem.Output)
+	f, err := os.Create(path.Join(output, stackItem.Output))
 	check(err)
 	defer f.Close()
 
-	_, err = f.WriteString(output)
+	_, err = f.WriteString(renderedContent)
 	check(err)
 }
 

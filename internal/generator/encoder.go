@@ -16,16 +16,16 @@ func loadEncoder(name string) (Encoder, error) {
 		return nil, err
 	}
 
-	symCheck, err := plugin.Lookup("Encode")
+	symEncoder, err := plugin.Lookup("Encoder")
 
 	if err != nil {
 		return nil, err
 	}
 
 	var encoder Encoder
-	encoder, ok := symCheck.(Encoder)
+	encoder, ok := symEncoder.(Encoder)
 	if !ok {
-		return nil, errors.New("unexpected type from module symbol")
+		return nil, errors.New("Unexpected type from encoder symbol")
 	}
 
 	return encoder, nil

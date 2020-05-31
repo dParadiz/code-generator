@@ -23,18 +23,18 @@ func loadDecoder(name string) (Decoder, error) {
 		return nil, err
 	}
 
-	symCheck, err := plugin.Lookup("Decode")
+	symCheck, err := plugin.Lookup("Decoder")
 
 	if err != nil {
 		return nil, err
 	}
 
-	var encoder Decoder
-	encoder, ok := symCheck.(Decoder)
+	var decoder Decoder
+	decoder, ok := symCheck.(Decoder)
 	if !ok {
-		return nil, errors.New("unexpected type from module symbol")
+		return nil, errors.New("Unexpected  type from decoder symbol")
 	}
 
-	return encoder, nil
+	return decoder, nil
 
 }
