@@ -3,12 +3,12 @@ package generator
 import (
 	"plugin"
 
-	"github.com/dparadiz/code-generator/renderer"
+	"github.com/dparadiz/code-generator/internal/generator/"
 )
 
 type DecoderContext struct {
 	ConfigSource string,
-	Context interface{}
+	Data interface{}
 }
 
 type Decoder interface {
