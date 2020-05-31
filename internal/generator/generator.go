@@ -1,35 +1,41 @@
 package generator
 
+import "github.com/dparadiz/code-generator/internal/renderer"
+
 type Context struct {
-	EncoderName string
+	EncoderName   string
 	EncoderConfig string
-	DecoderName string
+	DecoderName   string
 	DecoderConfig string
-	OutputFolder string
+	OutputFolder  string
 }
 
-func (context *Context) generate()  {
-	encoderImplementation, err := encoder.loadEncoder(context.EncoderName)
-	if err !== nil {
-		panic(err)
-	}
-	decoderImplementation, err := decoder.loadDecoder(context.DecoderName)
-	if err !== nil {
-		panic(err)
-	}
-	
-	data, err := encoderImplementation.Encode(context.EncoderConfig);
+func (c *Context) Generate() {
+	encoderImplementation, err := loadEncoder(c.EncoderName)
 	if err != nil {
 		panic(err)
 	}
-	
-	decoderContext = DecoderContext{ConfigSource : concontext.DecoderConfig, Data: data}
-	stack := new(renderer.Stack);
 
-	err := decoderImplementation.Decode(decoderContext, stack);
+	decoderImplementation, err := loadDecoder(c.DecoderName)
 	if err != nil {
 		panic(err)
-	}	
+	}
 
-	renderer.Process(context.outputFolder, stack);	
+	data, err := encoderImplementation.Encode(c.EncoderConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	decoderContext := new(DecoderContext)
+	decoderContext.ConfigSource = c.DecoderConfig
+	decoderContext.Data = data
+
+	stack := new(renderer.Stack)
+
+	err = decoderImplementation.Decode(decoderContext, stack)
+	if err != nil {
+		panic(err)
+	}
+
+	renderer.Process(c.OutputFolder, stack)
 }

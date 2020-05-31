@@ -1,32 +1,33 @@
 package generator
 
-import (	
+import (
+	"errors"
 	"plugin"
 )
 
 type Encoder interface {
-	Encode(input  string) (interface{}, error)
+	Encode(input string) (interface{}, error)
 }
 
-func loadEncoder(name string) Encoder, error {
+func loadEncoder(name string) (Encoder, error) {
 	plugin, err := plugin.Open(name)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	symCheck, err := plugin.Lookup("Encode")
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var enc = Encoder
-	encoder, ok := symCheck.(enc)
+	var encoder Encoder
+	encoder, ok := symCheck.(Encoder)
 	if !ok {
-		return errors.New("unexpected type from module symbol")
+		return nil, errors.New("unexpected type from module symbol")
 	}
 
-	return encoder
+	return encoder, nil
 
 }

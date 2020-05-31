@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/dparadiz/code-generator/internal/generator/"
+	"github.com/dparadiz/code-generator/internal/generator"
 )
 
 func main() {
@@ -15,11 +15,11 @@ func main() {
 	decoderConfig := flag.String("decoder-config", "", "Decoder specific config")
 
 	context := generator.Context{
-		EncoderName: *encoderName,
-		EncoderConfig * encoderConfig,
+		EncoderName:   *encoderName,
+		EncoderConfig: *encoderConfig,
 		DecoderName:   *decoderName,
 		DecoderConfig: *decoderConfig,
-		OutputFolder:  outputFolder,
+		OutputFolder:  *outputFolder,
 	}
 
 	context.Generate()
