@@ -17,5 +17,5 @@ func (ec encoderContext) Encode(input string) (interface{}, error) {
 	return Context{Content: string(dat)}, nil
 }
 
-// export as symbol Encoder
+// Encoder exported symbol
 var Encoder encoderContext
