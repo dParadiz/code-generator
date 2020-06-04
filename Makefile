@@ -1,17 +1,18 @@
 .PHONY: build plugins
 ENCODERS = helloencode-encoder openapi-encoder
-DECODERS = hellodecode-decoder
-BUILD_DIR = $$PWD/build
-GO_BUILD = go build -o $(BUILD_DIR)
-GO_BUILD_PLUGIN = go build -o $(BUILD_DIR) -buildmode=plugin
+DECODERS = hellodecode-decoder psr15api-decoder
+
+PROJECT_DIR = $(shell pwd)
+BUILD_DIR = build
+GO_BUILD = go build -o ../../$(BUILD_DIR)
+GO_BUILD_PLUGIN = go build -o ../../../../$(BUILD_DIR) -buildmode=plugin
 ENCODER_PLUGIN_PATH = internal/plugins/encoder/
 DECODER_PLUGIN_PATH = internal/plugins/decoder/
 DOCKER_RUN_BASH = docker-compose run --rm golang bash -c
 
-
 build:
 	@echo "## Building code-generator .."
-	@$(DOCKER_RUN_BASH) "cd cmd/code-generator;go build -o $(BUILD_DIR)"
+	@$(DOCKER_RUN_BASH) "cd cmd/code-generator;${GO_BUILD}"
 
 #encoders
 %-encoder:
