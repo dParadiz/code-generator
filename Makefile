@@ -1,6 +1,6 @@
 .PHONY: build plugins
-ENCODERS = helloencode-encoder openapi-encoder
-DECODERS = hellodecode-decoder psr15api-decoder
+ENCODERS = openapi-encoder
+DECODERS = psr15api-decoder
 
 PROJECT_DIR = $(shell pwd)
 BUILD_DIR = build

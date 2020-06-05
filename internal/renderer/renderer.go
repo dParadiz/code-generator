@@ -26,7 +26,14 @@ func render(output string, stackItem *StackItem) {
 	renderedContent, err := mustache.RenderFile(stackItem.Template, stackItem.TemplateData)
 	check(err)
 
-	f, err := os.Create(path.Join(output, stackItem.Output))
+	filename := path.Join(output, stackItem.Output)
+	dir := path.Dir(filename)
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, os.ModePerm)
+	}
+
+	f, err := os.Create(filename)
 	check(err)
 	defer f.Close()
 
