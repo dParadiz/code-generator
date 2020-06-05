@@ -34,7 +34,15 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 		return errors.New("Can work only with openapi 3.0 data")
 	}
 
-	fmt.Printf("%v\n", openapi)
+	for schemaName, schema := range openapi.Components.Schemas {
+		fmt.Printf("%s\n", schemaName)
+		fmt.Printf("\treqired %v\n", schema.Value.Required)
+		fmt.Println("\tProperties:")
+		for propertyName, property := range schema.Value.Properties {
+			fmt.Printf("\t\t%s %s\n", propertyName, property.Value.Type)
+		}
+
+	}
 
 	return nil
 }
