@@ -26,15 +26,15 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 		return err
 	}
 
-	fmt.Printf("{}", cfg)
+	fmt.Printf("Configuration data: %v\n", cfg)
 
-	var openapi openapi3.Swagger
-	openapi, ok := c.Data.(openapi3.Swagger)
+	var openapi *openapi3.Swagger
+	openapi, ok := c.Data.(*openapi3.Swagger)
 	if !ok {
 		return errors.New("Can work only with openapi 3.0 data")
 	}
 
-	fmt.Printf("{}", openapi)
+	fmt.Printf("%v\n", openapi)
 
 	return nil
 }
