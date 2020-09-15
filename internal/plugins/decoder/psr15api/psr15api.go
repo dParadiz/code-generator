@@ -41,20 +41,42 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 		model.Name = schemaName
 		model.Namespace = "Model"
 
-		//fmt.Printf("\treqired %v\n", schema.Value.Required)
+		// prepare required map
+		required := make(map[string]bool)
+		for _, name := range schema.Value.Required {
+			required[name] = true
+
+		}
 
 		for propertyName, property := range schema.Value.Properties {
 
 			var modelProperty = new(Property)
-			modelProperty.Name = propertyName
+			modelProperty.PropertyName = propertyName
 			modelProperty.Value = property.Value.Default
 			modelProperty.Visibility = "private"
+			modelProperty.Nullable = property.Value.Nullable
+
 			modelProperty.Type = getType(property)
 			modelProperty.DocType = getType(property)
+			modelProperty.Last = false
 
-			model.OptionalProperties = append(model.OptionalProperties, *modelProperty)
+			setPropertyValidator(modelProperty, property)
+
+			if required[propertyName] {
+				model.RequiredProperties = append(model.RequiredProperties, *modelProperty)
+			} else {
+				model.OptionalProperties = append(model.OptionalProperties, *modelProperty)
+			}
 		}
-		fmt.Println(outputFileName.String())
+
+		if len(model.RequiredProperties) > 0 {
+			model.RequiredProperties[len(model.RequiredProperties)-1].Last = true
+		}
+
+		if len(model.OptionalProperties) > 0 {
+			model.OptionalProperties[len(model.OptionalProperties)-1].Last = true
+		}
+
 		stackItem := new(renderer.StackItem)
 		stackItem.Output = outputFileName.String()
 		stackItem.Template = cfg.ModelTemplate
@@ -70,13 +92,71 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 func getType(schemaType *openapi3.SchemaRef) string {
 	switch propertyType := schemaType.Value.Type; propertyType {
 	case "number":
+		if schemaType.Value.Nullable {
+			return "?float"
+		}
 		return "float"
 	case "integer":
+		if schemaType.Value.Nullable {
+			return "?int"
+		}
 		return "int"
 	case "boolean":
 		return "bool"
 	default:
+		if schemaType.Value.Nullable {
+			return fmt.Sprintf("?%s", propertyType)
+		}
 		return propertyType
+	}
+}
+
+func setPropertyValidator(property *Property, schema *openapi3.SchemaRef) {
+	if schema.Value.Min != nil {
+		var value string
+		if schema.Value.Type == "integer" {
+			value = fmt.Sprintf("%d", int64(*schema.Value.Min))
+		} else {
+			value = fmt.Sprintf("%f", *schema.Value.Min)
+		}
+
+		property.Validators = append(property.Validators, PropertyValidator{Min: true, Value: value})
+	}
+
+	if schema.Value.Max != nil {
+		var value string
+		if schema.Value.Type == "integer" {
+			value = fmt.Sprintf("%d", int64(*schema.Value.Max))
+		} else {
+			value = fmt.Sprintf("%f", *schema.Value.Max)
+		}
+		property.Validators = append(property.Validators, PropertyValidator{Max: true, Value: value})
+	}
+
+	if schema.Value.MultipleOf != nil {
+		var value string
+		if schema.Value.Type == "integer" {
+			value = fmt.Sprintf("%d", int64(*schema.Value.MultipleOf))
+		} else {
+			value = fmt.Sprintf("%f", *schema.Value.MultipleOf)
+		}
+		property.Validators = append(property.Validators, PropertyValidator{MultipleOf: true, Value: value})
+	}
+
+	if schema.Value.MaxLength != nil {
+		property.Validators = append(property.Validators, PropertyValidator{MaxLength: true, Value: fmt.Sprintf("%d", *schema.Value.MaxLength)})
+	}
+
+	if schema.Value.MinLength > 0 {
+		property.Validators = append(property.Validators, PropertyValidator{MinLength: true, Value: fmt.Sprintf("%d", schema.Value.MinLength)})
+	}
+
+	if schema.Value.MinItems > 0 {
+		property.Validators = append(property.Validators, PropertyValidator{MinItems: true, Value: fmt.Sprintf("%d", schema.Value.MinItems)})
+	}
+
+	if schema.Value.MaxItems != nil {
+		property.Validators = append(property.Validators, PropertyValidator{MaxItems: true, Value: fmt.Sprintf("%d", *schema.Value.MaxItems)})
 	}
 }
 
