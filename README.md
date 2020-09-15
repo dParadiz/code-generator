@@ -6,8 +6,12 @@ decoder can generate specific boilerplate code.
 
 ## Encoders Decoders
 
-Encoder and decoders are plugins for generator
+Encoder and decoders are plugins for generator. 
+
+- OpenApi encoder using `github.com/getkin/kin-openapi/openapi3` to prepare context for decoding
 
 ## Coder rendering
 
 Code rendering is done with mustache templates
+
+- Psr15Api decoder that decodes OpenApi context into php api based on https://github.com/dParadiz/api-frame with generated routing, middleware, handlers and models
