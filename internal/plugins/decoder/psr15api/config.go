@@ -8,6 +8,7 @@ import (
 
 type config struct {
 	ModelTemplate string `json:"model_template"`
+	Namespace     string `json:"namespace"`
 }
 
 func loadConfig(configPath string) (config, error) {
