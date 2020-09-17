@@ -27,8 +27,13 @@ func (m *Model) populateFrom(schema *openapi3.SchemaRef) {
 		modelProperty.Visibility = "private"
 		modelProperty.Nullable = property.Value.Nullable
 
-		modelProperty.Type = getType(property)
-		modelProperty.DocType = getType(property)
+		if property.Value.Nullable {
+			modelProperty.Type = "?" + getType(property)
+		} else {
+			modelProperty.Type = getType(property)
+		}
+
+		modelProperty.DocType = getDocType(property)
 		modelProperty.Last = false
 		modelProperty.setValidators(property)
 
@@ -46,4 +51,8 @@ func (m *Model) populateFrom(schema *openapi3.SchemaRef) {
 	if len(m.OptionalProperties) > 0 {
 		m.OptionalProperties[len(m.OptionalProperties)-1].Last = true
 	}
+}
+
+func (m Model) getClassNamespace() string {
+	return m.Namespace + "\\" + m.Name
 }

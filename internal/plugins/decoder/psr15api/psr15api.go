@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -13,9 +14,13 @@ import (
 
 type decoderContext string
 
+type phpClass interface {
+	getClassNamespace() string
+}
+
 func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Stack) error {
 
-	cfg, err := loadConfig(c.ConfigSource)
+	err := loadConfig(c.ConfigSource)
 	if err != nil {
 		return err
 	}
@@ -26,21 +31,21 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 		return errors.New("Can work only with openapi 3.0 data")
 	}
 
-	modelNamespace := modelNamespace(cfg.Namespace)
-
 	for schemaName, schema := range openapi.Components.Schemas {
 
 		if schema.Value.Type != "object" {
 			continue
 		}
 
-		model := new(Model)
-		model.Name = schemaName
-		model.Namespace = modelNamespace
+		model := Model{
+			Name:      schemaName,
+			Namespace: cfg.getModelNamespace(),
+		}
+
 		model.populateFrom(schema)
 
 		stackItem := new(renderer.StackItem)
-		stackItem.Output = modelOutputFile(schemaName)
+		stackItem.Output = getPsr4AutoloadFilename(cfg.Namespace, model)
 		stackItem.Template = cfg.ModelTemplate
 		stackItem.TemplateData = model
 
@@ -48,45 +53,87 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 
 	}
 
+	for path, pathItem := range openapi.Paths {
+
+		camelcasedPath := toCamelCase(path)
+		requestHandler := new(RequestHandler)
+		requestHandler.Name = "RequestHandler"
+		requestHandler.Namespace = cfg.getPathHandlerNamespace() + "\\" + camelcasedPath
+		requestHandler.setOperations(pathItem)
+
+		stackItem := new(renderer.StackItem)
+		stackItem.Output = getPsr4AutoloadFilename(cfg.Namespace, requestHandler)
+		stackItem.Template = cfg.RequestHandlerTemplate
+		stackItem.TemplateData = requestHandler
+
+		stack.Push(stackItem)
+
+		for _, operation := range requestHandler.Operations {
+			stackItem := new(renderer.StackItem)
+			stackItem.Output = getPsr4AutoloadFilename(cfg.Namespace, operation)
+			stackItem.Template = cfg.OperationInterfaceTemplate
+			stackItem.TemplateData = operation
+
+			stack.Push(stackItem)
+		}
+
+	}
+
 	return nil
 }
 
 func getType(schemaType *openapi3.SchemaRef) string {
+
 	switch propertyType := schemaType.Value.Type; propertyType {
 	case "number":
-		if schemaType.Value.Nullable {
-			return "?float"
-		}
 		return "float"
 	case "integer":
-		if schemaType.Value.Nullable {
-			return "?int"
-		}
 		return "int"
 	case "boolean":
 		return "bool"
+	case "object":
+		return schemaType.Ref[strings.LastIndex(schemaType.Ref, "/")+1:]
+	case "array":
+		return "array"
+	case "string":
+		return "string"
 	default:
-		if schemaType.Value.Nullable {
-			return fmt.Sprintf("?%s", propertyType)
-		}
-		return propertyType
+		panic(fmt.Sprintf("Unsupported type " + propertyType))
 	}
 }
 
-func modelNamespace(baseNamespace string) string {
-	var modelNamespace strings.Builder
-	modelNamespace.WriteString(baseNamespace)
-	modelNamespace.WriteString("\\Model")
+func getDocType(schema *openapi3.SchemaRef) string {
+	pType := getType(schema)
 
-	return modelNamespace.String()
+	if strings.Compare(pType, "array") == 0 {
+		return "[]" + schema.Value.Items.Value.Type
+	}
+
+	return pType
 }
 
-func modelOutputFile(schemaName string) string {
-	var outputFileName strings.Builder
-	outputFileName.WriteString("/Model/")
-	outputFileName.WriteString(schemaName)
-	outputFileName.WriteString(".php")
-	return outputFileName.String()
+func getPsr4AutoloadFilename(namespace string, model phpClass) string {
+	classNamespace := model.getClassNamespace()
+
+	var stringBuilder strings.Builder
+
+	if namespace == "" {
+		stringBuilder.WriteString("/")
+	} else {
+		classNamespace = strings.ReplaceAll(classNamespace, namespace, "")
+	}
+
+	stringBuilder.WriteString(strings.ReplaceAll(classNamespace, "\\", "/"))
+	stringBuilder.WriteString(".php")
+
+	return stringBuilder.String()
+}
+
+func toCamelCase(path string) string {
+
+	path = string(regexp.MustCompile(`[^A-Za-z\d]`).ReplaceAll([]byte(path), []byte(" ")))
+	path = strings.Title(path)
+	return string(regexp.MustCompile(` `).ReplaceAll([]byte(path), []byte("")))
 }
 
 // Decoder symbol export
