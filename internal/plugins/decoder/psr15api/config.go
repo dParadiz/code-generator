@@ -16,6 +16,7 @@ type config struct {
 	ModelNamespace             string `json:"model_namespace"`
 	PathHandlerNamespace       string `json:"path_handler_namespace" default:"PathHandler"`
 	OperationInterfaceTemplate string `json:"operation_interface_template"`
+	OperationExceptionTemplate string `json:"operation_exception_template"`
 }
 
 func (c *config) getModelNamespace() string {

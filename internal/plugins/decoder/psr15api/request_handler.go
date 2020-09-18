@@ -13,7 +13,10 @@ type RequestHandler struct {
 
 func (r *RequestHandler) addOperation(operation Operation) {
 	r.Operations = append(r.Operations, operation)
-	r.Imports = append(r.Imports, operation.Namespace+"\\"+operation.Name)
+	r.Imports = append(r.Imports, operation.getClassNamespace())
+	for _, exception := range operation.Exceptions {
+		r.Imports = append(r.Imports, exception.getClassNamespace())
+	}
 }
 
 func (r *RequestHandler) setOperations(path *openapi3.PathItem) {

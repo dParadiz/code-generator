@@ -75,6 +75,15 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 			stackItem.TemplateData = operation
 
 			stack.Push(stackItem)
+
+			for _, exception := range operation.Exceptions {
+				stackItem := new(renderer.StackItem)
+				stackItem.Output = getPsr4AutoloadFilename(cfg.Namespace, exception)
+				stackItem.Template = cfg.OperationExceptionTemplate
+				stackItem.TemplateData = exception
+
+				stack.Push(stackItem)
+			}
 		}
 
 	}

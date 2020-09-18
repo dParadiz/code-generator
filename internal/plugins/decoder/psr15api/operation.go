@@ -177,7 +177,7 @@ func (o *Operation) setResponses(operation *openapi3.Operation) {
 				ExceptionMessage: *response.Value.Description,
 				ExceptionCode:    "200",
 				HasContent:       false,
-				Name:             "Exception",
+				Name:             strings.Title(o.Method) + "OperationException",
 				Namespace:        o.Namespace + "\\Exception",
 			}
 
@@ -186,12 +186,12 @@ func (o *Operation) setResponses(operation *openapi3.Operation) {
 			}
 			if matched400 {
 				exception.ExceptionCode = code
-				exception.Name = "ClientError" + code + "Exception"
+				exception.Name = strings.Title(o.Method) + "ClientError" + code + "OperationException"
 			}
 
 			if matched500 {
 				exception.ExceptionCode = code
-				exception.Name = "ServerError" + code + "Exception"
+				exception.Name = strings.Title(o.Method) + "ServerError" + code + "OperationException"
 			}
 
 			if cType != "" {
@@ -202,6 +202,22 @@ func (o *Operation) setResponses(operation *openapi3.Operation) {
 				exception.ContentName = b.String()
 				exception.ContentType = cType
 				exception.HasContent = true
+
+				if cType == "array" {
+					cType = strings.ReplaceAll(cDocType, "[]", "")
+				}
+
+				skipTypes := map[string]bool{
+					"int":    true,
+					"bool":   true,
+					"float":  true,
+					"string": true,
+					"array":  true,
+				}
+
+				if !skipTypes[cType] {
+					exception.Imports = append(exception.Imports, cfg.getModelNamespace()+"\\"+cType)
+				}
 			}
 
 			o.Exceptions = append(o.Exceptions, exception)
