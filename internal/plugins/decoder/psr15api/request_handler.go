@@ -26,7 +26,10 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		operation.setName(path.Get.OperationID)
 
 		operation.setParameters(path.Get)
+		operation.setResponses(path.Get)
+
 		r.addOperation(operation)
+
 	}
 
 	if path.Delete != nil {
@@ -39,6 +42,8 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		operation.setName(path.Delete.OperationID)
 
 		operation.setParameters(path.Delete)
+		operation.setResponses(path.Delete)
+
 		r.addOperation(operation)
 	}
 
@@ -50,7 +55,10 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		}
 
 		operation.setName(path.Post.OperationID)
+
 		operation.setParameters(path.Post)
+		operation.setResponses(path.Post)
+
 		r.addOperation(operation)
 	}
 
@@ -62,7 +70,10 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		}
 
 		operation.setName(path.Put.OperationID)
+
 		operation.setParameters(path.Put)
+		operation.setResponses(path.Put)
+
 		r.addOperation(operation)
 	}
 
@@ -74,7 +85,10 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		}
 
 		operation.setName(path.Patch.OperationID)
+
 		operation.setParameters(path.Patch)
+		operation.setResponses(path.Patch)
+
 		r.addOperation(operation)
 	}
 
@@ -86,7 +100,10 @@ func (r *RequestHandler) setOperations(path *openapi3.PathItem) {
 		}
 
 		operation.setName(path.Options.OperationID)
+
 		operation.setParameters(path.Options)
+		operation.setResponses(path.Options)
+
 		r.addOperation(operation)
 	}
 

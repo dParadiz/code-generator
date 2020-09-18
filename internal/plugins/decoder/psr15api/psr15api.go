@@ -83,6 +83,9 @@ func (dc decoderContext) Decode(c *generator.DecoderContext, stack *renderer.Sta
 }
 
 func getType(schemaType *openapi3.SchemaRef) string {
+	if schemaType.Value.AllOf != nil {
+		return schemaType.Ref[strings.LastIndex(schemaType.Ref, "/")+1:]
+	}
 
 	switch propertyType := schemaType.Value.Type; propertyType {
 	case "number":
@@ -106,6 +109,9 @@ func getDocType(schema *openapi3.SchemaRef) string {
 	pType := getType(schema)
 
 	if strings.Compare(pType, "array") == 0 {
+		if schema.Value.Items.Ref != "" {
+			return "[]" + schema.Value.Items.Ref[strings.LastIndex(schema.Value.Items.Ref, "/")+1:]
+		}
 		return "[]" + schema.Value.Items.Value.Type
 	}
 
